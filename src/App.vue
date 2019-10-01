@@ -151,7 +151,7 @@ export default class App extends Vue {
     }
 
     get link() {
-        return new Link({service: 'http://198.58.99.125:8090', rpc: this.apiNode})
+        return new Link({service: 'https://callback.anchor.link', rpc: this.apiNode})
     }
 
     // possible actions for contract
