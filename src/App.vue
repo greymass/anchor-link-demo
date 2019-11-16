@@ -123,7 +123,7 @@ import TokenAbi from './eosio.token.abi'
 const ApiNodes: {[chain: number]: string} = {
     [ChainName.EOS]: 'https://eos.greymass.com',
     [ChainName.TELOS]: 'https://telos.greymass.com',
-    [ChainName.JUNGLE]: 'https://jungleapi.eossweden.se',
+    [ChainName.JUNGLE]: 'https://jungle.greymass.com',
     [ChainName.KYLIN]: 'https://api.kylin.alohaeos.com',
     [ChainName.WORBLI]: 'https://worbli.eosphere.io',
     [ChainName.BOS]: 'https://swedencornet.eossweden.eu',
