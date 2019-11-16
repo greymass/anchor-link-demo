@@ -9,6 +9,7 @@ import {JsonRpc} from 'eosjs'
 import {EventEmitter} from 'events'
 import genUUID from 'uuid/v4'
 import {Abi} from 'eosjs/dist/eosjs-rpc-interfaces'
+import * as zlib from 'pako'
 
 interface CallbackResponse {
     sig: string
@@ -95,6 +96,7 @@ export class LinkRequest extends EventEmitter {
     private setupRequest() {
         const opts: SigningRequestEncodingOptions = {
             abiProvider: this.link,
+            zlib,
         }
         const args = {
             ...this.args,
