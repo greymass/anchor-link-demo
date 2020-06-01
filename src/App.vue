@@ -10,7 +10,7 @@
                         Anchor Link
                     </h1>
                     <h2 class="subtitle">
-                        Demo using EOSIO URI and Anchor
+                        Demo using ESR URIs and Anchor. Go to <a href="https://github.com/greymass/anchor-link">https://github.com/greymass/anchor-link</a> for documentation.
                     </h2>
                 </div>
             </div>
@@ -101,7 +101,7 @@
                         type="is-primary"
                         size="is-medium"
                         icon-right="anchor"
-                        @click="signingModalOpen = true"
+                        @click="doSign"
                     >
                         Sign
                     </b-button>
@@ -113,10 +113,10 @@
 
 <script lang="ts">
 import {Component, Vue, Watch} from 'vue-property-decorator'
-import {Link, LinkRequest} from './anchor-link'
+import Link from 'anchor-link'
+import BrowserTransport from 'anchor-link-browser-transport'
 import {ChainName} from 'eosio-uri'
 import {Abi} from 'eosjs/dist/eosjs-rpc-interfaces'
-import RequestModal from './components/RequestModal.vue'
 import {Debounce} from './utils'
 import TokenAbi from './eosio.token.abi'
 
@@ -132,7 +132,7 @@ const ApiNodes: {[chain: number]: string} = {
     [ChainName.BEOS]: 'https://api.beos.world',
 }
 
-@Component({components: {RequestModal}})
+@Component
 export default class App extends Vue {
 
     get chains() {
@@ -151,7 +151,11 @@ export default class App extends Vue {
     }
 
     get link() {
-        return new Link({service: 'https://callback.anchor.link', rpc: this.apiNode})
+        return new Link({
+            transport: new BrowserTransport({requestStatus: false}),
+            rpc: this.apiNode,
+            chainId: this.selectedChain,
+        })
     }
 
     // possible actions for contract
@@ -161,7 +165,7 @@ export default class App extends Vue {
     }
 
     get canSubmit() {
-        return !this.contractError && !this.contractLoading && this.linkRequest && !this.requestError
+        return !this.contractError && !this.contractLoading && this.resolvedAction
     }
 
     get resolvedAction() {
@@ -194,15 +198,6 @@ export default class App extends Vue {
         }
     }
 
-    get linkRequest() {
-        const action = this.resolvedAction
-        if (!action) { return null }
-        return this.link.request({
-            chainId: this.selectedChain,
-            action,
-        })
-    }
-
     get fields() {
         if (!this.contractAbi || !this.selectedAction) { return null }
         const action = this.contractAbi.actions.find(({name}) => name === this.selectedAction)!
@@ -228,23 +223,17 @@ export default class App extends Vue {
 
     requestError: string | null = null
 
-    @Watch('linkRequest', {immediate: true})
-    onLinkRequestChange(req: LinkRequest) {
-
-        if (!req) {
-            this.requestError = null
-        }
-        req.getRequest()
-            .then(() => {
-                if (this.linkRequest && req.uuid === this.linkRequest.uuid) {
-                    this.requestError = null
-                }
+    doSign() {
+        this.requestError = null
+        this.link.transact({action: this.resolvedAction!}).then((result) => {
+            this.$dialog.alert({
+                title: 'Success!',
+                message: `Transaction ID<br>\n<small>${ result.processed!.id }</small>`,
+                size: 'is-small',
             })
-            .catch((error) => {
-                if (this.linkRequest && req.uuid === this.linkRequest.uuid) {
-                    this.requestError = error.message || String(error)
-                }
-            })
+        }).catch((error) => {
+            this.requestError = error
+        })
     }
 
     @Watch('placeholderFields')
